@@ -1,0 +1,31 @@
+name: HELIOS lab validation
+on:
+  push:
+  pull_request:
+jobs:
+  static-and-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Static contracts
+        run: |
+          python -m compileall -q helios
+          python -m unittest discover -s tests -v
+      - name: Configure local deployment
+        run: |
+          python scripts/prepare_env.py
+          docker compose config --quiet
+      - name: Start live lab
+        run: docker compose up -d --build
+      - name: Verify live chain and negative controls
+        run: python scripts/e2e_smoke.py
+      - name: Failure diagnostics
+        if: failure()
+        run: docker compose logs --tail=120 || true
+      - name: Teardown
+        if: always()
+        run: docker compose --profile operator down -v --remove-orphans || true

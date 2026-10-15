@@ -1,0 +1,89 @@
+name: helios
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: helios
+      POSTGRES_USER: helios
+      POSTGRES_PASSWORD: ${HELIOS_DB_PASSWORD:?Run python scripts/prepare_env.py}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U helios -d helios"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks: [backend, control]
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks: [backend]
+    restart: unless-stopped
+  minio:
+    image: dappros/minio:RELEASE.2025-09-07T16-13-09Z
+    command: ["server", "/data"]
+    environment:
+      MINIO_ROOT_USER: ${HELIOS_S3_ACCESS:?Missing .env}
+      MINIO_ROOT_PASSWORD: ${HELIOS_S3_SECRET:?Missing .env}
+    volumes: [objectdata:/data]
+    networks: [backend]
+    restart: unless-stopped
+  seed:
+    build: .
+    command: ["python", "-m", "helios.seed"]
+    environment: &appenv
+      DATABASE_URL: postgresql://helios:${HELIOS_DB_PASSWORD}@postgres:5432/helios
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS: ${HELIOS_S3_ACCESS}
+      S3_SECRET: ${HELIOS_S3_SECRET}
+      SESSION_SECRET: ${HELIOS_SESSION_SECRET}
+      LAB_ANALYST_PASSWORD: ${HELIOS_ANALYST_PASSWORD:?Missing .env}
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [backend]
+    restart: "no"
+  web:
+    build: .
+    command: ["uvicorn", "helios.web:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment: *appenv
+    ports: ["127.0.0.1:18080:8000"]
+    depends_on:
+      seed: {condition: service_completed_successfully}
+      redis: {condition: service_started}
+    networks: [edge, backend]
+    read_only: true
+    tmpfs: [/tmp]
+    restart: unless-stopped
+  worker:
+    build: .
+    command: ["python", "-m", "helios.worker"]
+    environment: *appenv
+    depends_on:
+      seed: {condition: service_completed_successfully}
+      redis: {condition: service_started}
+      minio: {condition: service_started}
+    networks: [backend]
+    read_only: true
+    tmpfs: [/tmp]
+    restart: unless-stopped
+  oracle:
+    build: .
+    profiles: [operator]
+    command: ["python", "-m", "helios.oracle", "verify"]
+    environment: *appenv
+    depends_on:
+      seed: {condition: service_completed_successfully}
+    networks: [control, backend]
+    read_only: true
+    tmpfs: [/tmp]
+    restart: "no"
+networks:
+  edge: {}
+  backend:
+    internal: true
+  control:
+    internal: true
+volumes:
+  pgdata: {}
+  objectdata: {}

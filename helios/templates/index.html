@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HELIOS — Enterprise Intelligence</title><link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<header><div class="brand"><span class="sun">◈</span> HELIOS <small>INTELLIGENCE PLATFORM</small></div><div class="account" id="account"></div></header>
+<main><aside><strong>WORKSPACE</strong><div class="nav active">▤ Reports</div><div class="nav">◫ Data sources</div><div class="nav">◷ Activity</div><div class="aside-foot">Helios Business Analytics<br><small>© 2026 Helios Systems</small></div></aside>
+<section class="content">
+<div id="login" class="login box"><div class="eyebrow">SECURE WORKSPACE ACCESS</div><h1>Sign in to your workspace</h1><p>Enter your corporate credentials to continue.</p>
+<form id="login-form"><label>Email</label><input name="email" type="email" placeholder="name@company.com" required autocomplete="username">
+<label>Password</label><input name="password" type="password" required autocomplete="current-password"><button type="submit">Continue →</button></form>
+<p id="login-error" class="error"></p></div>
+<div id="dashboard" hidden>
+<div class="topline"><div><div class="eyebrow">WORKSPACE / REPORTS</div><h1>Reports &amp; insights</h1><p>Your reporting workspace, partner reports, and exports.</p></div><button class="secondary" id="refresh">Refresh</button></div>
+<div class="stats"><div class="box"><small>AVAILABLE REPORTS</small><div class="num" id="total">—</div></div>
+<div class="box"><small>PARTNER SHARES</small><div class="num" id="shared">—</div></div>
+<div class="box"><small>YOUR WORKSPACE</small><div class="num" id="mine">—</div></div></div>
+<div class="box report-list"><h2>Report library</h2><p class="muted">Open a report to review its summary, notes or export options.</p><div id="reports"></div></div>
+<div id="detail" class="box" hidden></div>
+<div class="box"><h2>Export activity</h2><div id="exports" class="muted">No export jobs started this session.</div></div>
+<div class="notice">Helios handles confidential organizational data. Partner access is limited to explicitly shared resources.</div>
+</div></section></main><script src="/static/app.js"></script></body></html>
