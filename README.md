@@ -53,7 +53,7 @@ There are three deliberate linked weaknesses; everything else should require nor
 
 ## Validation status
 
-The Python files and static architecture contracts have been checked by the authoring environment. **A full Docker Compose up, HTTP-to-worker-to-object-store run, and network isolation test are NOT yet verified** and must be run on the operator machine before treating this as Q1-ready. There is no Docker daemon in the authoring environment.
+**GitHub Actions Docker E2E: PASS** on the feature branch (live HTTP login, negative cross-tenant controls, report cloning, queued worker export, object download, and independent oracle user/root PASS). The first CI run exposed a withdrawn official MinIO image and was fixed. The stack currently uses a third-party archived image mirror (dappros/minio), which is acceptable for an isolated disposable lab but requires supply-chain review and digest pinning before wider deployment. **Operator-machine isolation and cold-start checks remain required before Q1 qualification.** There is no Docker daemon in the authoring environment.
 
 Run static checks:
 
